@@ -1,29 +1,3 @@
-# CNAD-CarSharingGO
-go get github.com/lib/pq
-go get github.com/gorilla/mux
-go get golang.org/x/crypto/bcrypt
-go get github.com/golang-jwt/jwt
-
-
-Instructions for setting up and running microservices
---User Service--
-1) CD to services\user-service
-2) go run main.go
-
---Vehicle Service--
-1) CD to services\vehicle-service
-2) go run main.go
-
---Billing Service--
-1) CD to services\billing-service
-2) go run main.go
-
-Note: 
-User-service: localhost:8080
-Vehicle-Service: localhost:8085
-Billing-Service: localhost:8083
-
-
 SQL Script--
 User Service--------
 create table

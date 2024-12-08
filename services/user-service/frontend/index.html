@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        .nav-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+            margin: 0.25rem;
+            min-width: 150px;
+        }
+
+        .nav-button.register {
+            background-color: #059669;
+            color: white;
+        }
+
+        .nav-button.register:hover {
+            background-color: #047857;
+            transform: scale(1.05);
+        }
+
+        .nav-button.login {
+            background-color: #2563EB;
+            color: white;
+        }
+
+        .nav-button.login:hover {
+            background-color: #1D4ED8;
+            transform: scale(1.05);
+        }
+
+        .nav-button.update {
+            background-color: #7C3AED;
+            color: white;
+        }
+
+        .nav-button.update:hover {
+            background-color: #6D28D9;
+            transform: scale(1.05);
+        }
+
+        .nav-button.reserve {
+            background-color: #10B981;
+            color: white;
+        }
+
+        .nav-button.reserve:hover {
+            background-color: #059669;
+            transform: scale(1.05);
+        }
+
+        .nav-button.logout {
+            background-color: #DC2626;
+            color: white;
+        }
+
+        .nav-button.logout:hover {
+            background-color: #B91C1C;
+            transform: scale(1.05);
+        }
+
+        .form-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #D1D5DB;
+            margin-bottom: 1rem;
+        }
+
+        .success-message {
+            background-color: #D1FAE5;
+            color: #065F46;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .error-message {
+            background-color: #FEE2E2;
+            color: #991B1B;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .nav-button.payment {
+            background-color: #F59E0B;
+            color: white;
+        }
+
+        .nav-button.payment:hover {
+            background-color: #D97706;
+            transform: scale(1.05);
+        }
+
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-gray-100 via-gray-50 to-white">
+    <div class="min-h-screen p-6">
+        <div class="max-w-4xl mx-auto text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">User Management System</h1>
+            
+           <!-- Navigation Buttons -->
+            <div id="navButtons" class="flex flex-wrap justify-center gap-4 mb-4">
+                <button class="nav-button register" data-form="register">Register New Account</button>
+                <button class="nav-button login" data-form="login">Login to Account</button>
+                <button class="nav-button update hidden" data-form="update">Update Profile</button>
+                <button class="nav-button reserve hidden" id="reserveButton">Reserve Vehicle</button>
+                <button class="nav-button payment hidden" id="paymentButton">Make Payment</button>
+                <button class="nav-button logout hidden" id="logoutButton">Logout</button>
+            </div>
+            
+            <!-- Auth Status -->
+            <div id="authStatus" class="text-sm font-medium text-gray-600 mb-4"></div>
+
+            <!-- Form Container -->
+            <div id="formContainer" class="form-card">
+                <!-- Form content -->
+            </div>
+
+            <!-- Response Messages -->
+            <div id="responseMessage" class="hidden mt-4"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize state
+            updateAuthUI();
+            showForm('register');
+
+            // Add event listeners
+            document.querySelectorAll('[data-form]').forEach(button => {
+                button.addEventListener('click', () => showForm(button.dataset.form));
+            });
+
+            document.getElementById('reserveButton').addEventListener('click', () => {
+                window.location.href = 'http://localhost:8085';
+            });
+
+            document.getElementById('paymentButton').addEventListener('click', () => {
+                window.location.href = 'http://localhost:8083';
+            });
+
+            document.getElementById('logoutButton').addEventListener('click', handleLogout);
+        });
+
+        function updateAuthUI() {
+            const authToken = localStorage.getItem('authToken');
+            const userEmail = localStorage.getItem('userEmail');
+            const authStatus = document.getElementById('authStatus');
+            const updateBtn = document.querySelector('.nav-button.update');
+            const reserveBtn = document.getElementById('reserveButton');
+            const paymentBtn = document.getElementById('paymentButton');
+            const logoutBtn = document.getElementById('logoutButton');
+            const loginBtn = document.querySelector('.nav-button.login');
+            const registerBtn = document.querySelector('.nav-button.register');
+
+            if (authToken && userEmail) {
+                // User is logged in
+                authStatus.textContent = `Logged in as ${userEmail}`;
+                updateBtn.classList.remove('hidden');
+                reserveBtn.classList.remove('hidden');
+                paymentBtn.classList.remove('hidden');
+                logoutBtn.classList.remove('hidden');
+                loginBtn.classList.add('hidden');
+                registerBtn.classList.add('hidden');
+
+                // Check for redirect URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const redirectUrl = urlParams.get('redirect');
+                if (redirectUrl) {
+                    window.location.href = redirectUrl;
+                }
+            } else {
+                // User is not logged in
+                authStatus.textContent = 'Not logged in';
+                updateBtn.classList.add('hidden');
+                reserveBtn.classList.add('hidden');
+                paymentBtn.classList.add('hidden');
+                logoutBtn.classList.add('hidden');
+                loginBtn.classList.remove('hidden');
+                registerBtn.classList.remove('hidden');
+            }
+        }
+
+        function showForm(formType) {
+            const container = document.getElementById('formContainer');
+            const title = formType.charAt(0).toUpperCase() + formType.slice(1);
+            
+            container.innerHTML = `
+                <h2 class="text-2xl font-bold mb-6">${title}</h2>
+                <form id="userForm" class="space-y-4">
+                    <div>
+                        <input type="email" id="email" class="input-field" 
+                               placeholder="Email" required>
+                    </div>
+                    ${formType !== 'update' ? `
+                        <div>
+                            <input type="password" id="password" class="input-field" 
+                                   placeholder="Password" required>
+                        </div>
+                    ` : ''}
+                    ${formType !== 'login' ? `
+                        <div>
+                            <input type="tel" id="phoneNumber" class="input-field" 
+                                   placeholder="Phone Number">
+                        </div>
+                        <div>
+                            <select id="membershipTier" class="input-field">
+                                <option value="">Select Membership Tier</option>
+                                <option value="Basic">Basic</option>
+                                <option value="Premium">Premium</option>
+                                <option value="VIP">VIP</option>
+                            </select>
+                        </div>
+                    ` : ''}
+                    <button type="submit" class="nav-button ${formType}">
+                        ${formType === 'login' ? 'Sign In' : 
+                          formType === 'register' ? 'Create Account' : 'Save Changes'}
+                    </button>
+                </form>
+            `;
+
+            document.getElementById('userForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                handleSubmit(formType);
+            });
+        }
+
+        async function handleSubmit(formType) {
+            const email = document.getElementById('email').value;
+            const password = formType !== 'update' ? document.getElementById('password').value : null;
+            const phoneNumber = document.getElementById('phoneNumber')?.value;
+            const membershipTier = document.getElementById('membershipTier')?.value;
+
+            let endpoint = '';
+            let method = 'POST';
+            let body = {};
+
+            switch (formType) {
+                case 'register':
+                    endpoint = '/users/register';
+                    body = { email, password, phone_number: phoneNumber, membership_tier: membershipTier };
+                    break;
+                case 'login':
+                    endpoint = '/users/login';
+                    body = { email, password };
+                    break;
+                case 'update':
+                    const userId = localStorage.getItem('userId');
+                    endpoint = `/users/${userId}/profile`;
+                    method = 'PUT';
+                    body = { email, phone_number: phoneNumber, membership_tier: membershipTier };
+                    break;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:8080${endpoint}`, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(formType === 'update' && {
+                            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                        })
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (formType === 'login') {
+                        localStorage.setItem('authToken', data.token);
+                        localStorage.setItem('userId', data.user_id);
+                        localStorage.setItem('userEmail', data.email);
+                        updateAuthUI();
+                    }
+                    showMessage('Success!', true);
+                } else {
+                    showMessage(data.message || 'An error occurred', false);
+                }
+            } catch (error) {
+                showMessage('Failed to process request', false);
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userEmail');
+            updateAuthUI();
+            showForm('login');
+            showMessage('Logged out successfully', true);
+        }
+
+        function showMessage(message, isSuccess) {
+            const messageDiv = document.getElementById('responseMessage');
+            messageDiv.className = isSuccess ? 'success-message' : 'error-message';
+            messageDiv.textContent = message;
+            messageDiv.classList.remove('hidden');
+
+            setTimeout(() => {
+                messageDiv.classList.add('hidden');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
