@@ -1,152 +1,177 @@
-# CNAD-CarSharingGO
-go get github.com/lib/pq
-go get github.com/gorilla/mux
-go get golang.org/x/crypto/bcrypt
-go get github.com/golang-jwt/jwt
+
+# CNAD - Car Sharing System (Casey Tan Wee Liang)
+
+**INTRODUCTION**  
+In an era marked by sustainable transportation and shared economies, electric carsharing platforms have emerged as a cornerstone of modern urban mobility. This project aims to design and implement a fully functional electric car-sharing system using Go, with features catering to diverse user needs and real-world application scenarios. With an emphasis on practical and scalable solutions, the system includes user membership tiers, promotional discounts, and an accurate billing mechanism. 
 
 
-Instructions for setting up and running microservices
---User Service--
-1) CD to services\user-service
-2) go run main.go
+## System Architecture
 
---Vehicle Service--
-1) CD to services\vehicle-service
-2) go run main.go
+The system consists of three core microservices:
 
---Billing Service--
-1) CD to services\billing-service
-2) go run main.go
+**User Service (Port: 8080)**  
+Handles user authentication, profile management, and membership tiers.
+- Authentication and authorization
+- User profile management
+- JWT token generation and validation
+- Membership tier management
 
-Note: 
-User-service: localhost:8080
-Vehicle-Service: localhost:8085
-Billing-Service: localhost:8083
+**Vehicle Service (Port: 8085)**   
+Manages vehicle fleet, bookings, and real-time vehicle status.
+- Vehicle inventory management
+- Booking creation and management
+- Real-time vehicle status tracking
+- Availability monitoring
 
+**Billing Service (Port: 8083)**  
+Processes payments, generates invoices, and manages billing-related operations.
+- Payment processing
+- Invoice generation
+- Dynamic cost calculation
+- Payment method management
+- Membership-based pricing
 
-SQL Script--
-User Service--------
-create table
-  public.users (
-    id serial not null,
-    email character varying(255) not null,
-    phone_number character varying(20) null,
-    password_hash character varying(255) not null,
-    membership_tier character varying(20) null default 'Basic'::character varying,
-    created_at timestamp without time zone null default current_timestamp,
-    constraint users_pkey primary key (id),
-    constraint users_email_key unique (email)
-  ) tablespace pg_default;
+![Microservice Architecture](https://github.com/user-attachments/assets/4e1ae943-fa27-4958-a0f4-c4f83f17c3c2)
 
+## Technical Stack
 
-Vehicle Service--------
-create table
-  public.vehicles (
-    id serial not null,
-    model character varying(100) not null,
-    type character varying(50) not null,
-    license_plate character varying(20) not null,
-    status character varying(20) not null default 'available'::character varying,
-    location character varying(255) null,
-    battery_level integer null,
-    cleanliness_status character varying(20) null default 'clean'::character varying,
-    created_at timestamp without time zone null default current_timestamp,
-    last_status_update timestamp without time zone null default current_timestamp,
-    hourly_rate numeric(10, 2) not null default 9.00,
-    constraint vehicles_pkey primary key (id),
-    constraint vehicles_license_plate_key unique (license_plate),
-    constraint vehicles_battery_level_check check (
-      (
-        (battery_level >= 0)
-        and (battery_level <= 100)
-      )
-    )
-  ) tablespace pg_default;
+### Backend
+- **Language**: Go
+- **Database**: PostgreSQL (Supabase)
+- **Authentication**: JWT
+- **API**: RESTful endpoints
 
-create index if not exists idx_vehicles_status on public.vehicles using btree (status) tablespace pg_default;
+### Frontend
+- **Markup Languages**: HTML, CSS, JavaScript
+- **Styling**: Tailwind CSS
+- **State Management**: Local Storage
 
-(Insert Vehicle Data)
-WITH inserted_vehicles AS (
-    INSERT INTO vehicles (model, type, license_plate, status, location, battery_level, cleanliness_status) 
-    VALUES
-        ('Tesla Model 3', 'Electric Sedan', 'SGP1234A', 'available', 'Marina Bay Sands', 90, 'clean'),
-        ('Tesla Model Y', 'Electric SUV', 'SGP5678B', 'available', 'East Coast Park', 85, 'clean'),
-        ('Nissan Leaf', 'Electric Hatchback', 'SGP9012C', 'available', 'ION Orchard', 75, 'clean'),
-        ('BYD Atto 3', 'Electric SUV', 'SGP3456D', 'maintenance', 'Bugis Junction', 30, 'needs_cleaning'),
-        ('Tesla Model Y', 'Electric SUV', 'SGP7890E', 'available', 'JEM Jurong East', 95, 'clean'),
-        ('Hyundai Kona Electric', 'Electric SUV', 'SGP2345F', 'available', 'Kallang Wave Mall', 88, 'clean'),
-        ('Kia EV6', 'Electric Crossover', 'SGP6789G', 'available', 'Somerset 313', 92, 'clean'),
-        ('BYD Seal', 'Electric Sedan', 'SGP0123H', 'charging', 'Tampines Mall', 15, 'clean'),
-        ('MG4', 'Electric Hatchback', 'SGP4567J', 'available', 'AMK Hub', 87, 'clean'),
-        ('Tesla Model 3', 'Electric Sedan', 'SGP8901K', 'available', 'Clementi Mall', 83, 'needs_cleaning')
-    RETURNING id, model
-)
+## Getting Started
 
-create table
-  public.bookings (
-    id serial not null,
-    user_id integer not null,
-    vehicle_id integer not null,
-    start_time timestamp without time zone not null,
-    end_time timestamp without time zone not null,
-    status character varying(20) not null default 'pending'::character varying,
-    created_at timestamp without time zone null default current_timestamp,
-    updated_at timestamp without time zone null default current_timestamp,
-    total_cost numeric(10, 2) null,
-    constraint bookings_pkey primary key (id),
-    constraint bookings_vehicle_id_fkey foreign key (vehicle_id) references vehicles (id),
-    constraint valid_time_range check ((end_time > start_time))
-  ) tablespace pg_default;
+### Dependencies Overview
+Ensure these are installed!
 
-create index if not exists idx_bookings_user_id on public.bookings using btree (user_id) tablespace pg_default;
+- go get -u github.com/golang-jwt/jwt@v3.2.2  **(JWT authentication)**
+- go get -u github.com/gorilla/handlers@v1.5.2 **(HTTP middleware)**
+- go get -u github.com/gorilla/mux@v1.8.1 **(HTTP router)**
+- go get -u github.com/lib/pq@v1.10.9 **(PostgreSQL driver)**
+- go get -u golang.org/x/crypto@v0.30.0 **(Cryptographic functions)**
 
-create index if not exists idx_bookings_vehicle_id on public.bookings using btree (vehicle_id) tablespace pg_default;
+### How to run 
+You might need 3 terminals open for this!
+1. User Services
+```bash
+cd services\user-service
+go run main.go
+```
+2. Vehicle Services
+```bash
+cd services\vehicle-service
+go run main.go
+```
+3. Billing Services
+```bash
+cd services\billing-service
+go run main.go
+```
 
-create index if not exists idx_bookings_status on public.bookings using btree (status) tablespace pg_default;
+## API Documentation
 
-create trigger create_invoice_after_booking
-after insert on bookings for each row
-execute function create_invoice_for_booking ();
+### User Service Endpoints
+```
+POST /users/register - Register new user
+POST /users/login - User login
+PUT /users/{id}/profile - Update user profile
+```
 
-create table
-  public.pricing_tiers (
-    id serial not null,
-    name character varying(50) not null,
-    hourly_rate numeric(10, 2) not null,
-    discount numeric(5, 2) not null,
-    created_at timestamp without time zone null default current_timestamp,
-    constraint pricing_tiers_pkey primary key (id),
-    constraint pricing_tiers_name_key unique (name),
-    constraint valid_discount check (
-      (
-        (discount >= (0)::numeric)
-        and (discount <= (100)::numeric)
-      )
-    )
-  ) tablespace pg_default;
+### Vehicle Service Endpoints
+```
+GET /api/vehicles/available - Get available vehicles
+POST /api/bookings - Create booking
+PUT /api/bookings/{id} - Update booking
+DELETE /api/bookings/{id} - Cancel booking
+GET /api/bookings/my - Get user bookings
+```
 
-INSERT INTO public.pricing_tiers (name, hourly_rate, discount) VALUES
-    ('Basic', 9.00, 0.00),    -- 0% discount
-    ('Premium', 9.00, 11.11), -- $1 off = ~11.11% discount on $9
-    ('VIP', 9.00, 22.22);     -- $2 off = ~22.22% discount on $9
+### Billing Service Endpoints
+```
+POST /api/billing/calculate - Calculate rental cost
+POST /api/billing/invoices - Create invoice
+GET /api/billing/users/{id}/invoices - Get user invoices
+POST /api/billing/payment-methods - Add payment method
+POST /api/billing/invoices/{id}/pay - Process payment
+```
 
-Billing Service ----------
-create table
-  public.invoices (
-    id serial not null,
-    booking_id integer not null,
-    user_id integer not null,
-    amount numeric(10, 2) not null,
-    discount_amount numeric(10, 2) not null default 0.00,
-    final_amount numeric(10, 2) not null,
-    status character varying(20) not null default 'pending'::character varying,
-    created_at timestamp without time zone null default current_timestamp,
-    updated_at timestamp without time zone null default current_timestamp,
-    constraint invoices_pkey primary key (id),
-    constraint invoices_booking_id_fkey foreign key (booking_id) references bookings (id),
-    constraint invoices_user_id_fkey foreign key (user_id) references users (id)
-  ) tablespace pg_default;
+## Database Schema
 
-create index if not exists idx_invoices_user_id on public.invoices using btree (user_id) tablespace pg_default;
+The system uses a shared PostgreSQL database with separate tables for each service domain:
 
-create index if not exists idx_invoices_status on public.invoices using btree (status) tablespace pg_default;
+- Users Table
+- Vehicles Table
+- Bookings Table
+- Invoices Table
+- Membership Tier Table
+## Security Implementation
+
+### Authentication
+- Secure password hashing using bcrypt
+- JWT-based authentication with expiration
+- Token validation middleware
+- Secure HTTP headers
+
+### Data Protection
+- Prepared SQL statements
+- Input validation
+- CORS protection
+- Request timeouts
+
+## Scaling Considerations
+
+### Database Connections
+- Connection pooling (25 connections per service)
+- Connection lifetime management
+- Efficient connection handling
+
+### Service Independence
+- Independent scaling capability
+- Separate frontend assets
+- Isolated deployment options
+
+## Monitoring and Maintenance
+
+### Logging
+- Structured logging in each service
+- Error tracking and monitoring
+- Request/response logging
+
+### Health Checks
+- Database connection monitoring
+- Service status endpoints
+- Error rate tracking
+
+## Future Enhancements
+
+1. Service Discovery
+   - Implementation of service registry
+   - Load balancing capabilities
+   - Health check integration
+
+2. Message Queue Integration
+   - Asynchronous operations
+   - Event-driven architecture
+   - Enhanced failure handling
+
+3. Caching Layer
+   - Redis integration
+   - Cache invalidation strategies
+   - Performance optimization
+
+4. Payment Method
+   - Credit Card payment
+   - Apple Pay payment
+   - Other alternatives
+
+## Contact
+
+Your Name - [Casey Tan](https://github.com/MetroBeann)  
+Project Link: [https://github.com/MetroBeann/CNAD-CarSharingGO1.git](https://github.com/MetroBeann/CNAD-CarSharingGO1.git)
