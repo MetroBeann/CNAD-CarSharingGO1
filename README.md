@@ -173,5 +173,5 @@ The system uses a shared PostgreSQL database with separate tables for each servi
 
 ## Contact
 
-Your Name - [Casey Tan](https://github.com/MetroBeann)  
+Name - [Casey Tan](https://github.com/MetroBeann)  
 Project Link: [https://github.com/MetroBeann/CNAD-CarSharingGO1.git](https://github.com/MetroBeann/CNAD-CarSharingGO1.git)
